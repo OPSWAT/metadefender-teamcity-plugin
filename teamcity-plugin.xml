@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:schemas-jetbrains-com:teamcity-plugin-v1-xml">
+  <info>
+    <name>OPSWAT MetaDefender</name>
+    <display-name>OPSWAT MetaDefender</display-name>
+    <version>1.0.0.0</version>
+    <description>Automatically scan artifacts with MetaDefender</description>
+    <download-url>Plugin download URL</download-url>
+    <email>metadefender@opswat.com</email>
+    <vendor>
+      <name>OPSWAT, Inc.</name>
+      <url>https://www.opswat.com/</url>
+      <logo></logo>
+    </vendor>
+  </info>
+  <deployment use-separate-classloader="true" />
+</teamcity-plugin>
