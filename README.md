@@ -1,6 +1,6 @@
 # metadefender-teamcity-plugin
 
-Teamcity MetaDefender plugin will scan your build with 30+ leading anti-malware engines to detect possible malware & will alert if any anti-virus engines are incorrectly flagging your software or application as malicious.
+MetaDefender TeamCity plugin will scan your build with 30+ leading anti-malware engines to detect possible malware & will alert if any anti-virus engines are incorrectly flagging your software or application as malicious.
 
 For more details setup & usage please see: https://www.opswat.com/free-tools/teamcity-plugin
 
