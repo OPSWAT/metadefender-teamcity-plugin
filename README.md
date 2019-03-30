@@ -13,7 +13,7 @@ Download and install the newest package from the [TeamCity plugin page](https://
 Easiest way to build is by using the [dockerfile](https://github.com/OPSWAT/metadefender-teamcity-plugin/blob/master/dockerfile):
 
 ```bash
-make build
+./build.sh
 ```
 
 This will create a docker image containing the build result & copy the metadefender-plugin.zip.
