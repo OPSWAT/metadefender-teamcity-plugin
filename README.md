@@ -10,7 +10,7 @@ Download and install the newest package from the [TeamCity plugin page](https://
 
 ## Build
 
-Easiest way to build is by using the [dockerfile](https://github.com/OPSWAT/metadefender-cloudformation/blob/master/dockerfile):
+Easiest way to build is by using the [dockerfile](https://github.com/OPSWAT/metadefender-teamcity-plugin/blob/master/dockerfile):
 
 ```bash
 make build
