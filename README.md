@@ -22,6 +22,6 @@ This will create a docker image containing the build result & copy the metadefen
 
 For specific product questions or issues please contact [support](https://www.opswat.com/support).
 
-## Licence
+## License
 
 [MIT](https://github.com/OPSWAT/metadefender-cloudformation/blob/master/LICENSE)
