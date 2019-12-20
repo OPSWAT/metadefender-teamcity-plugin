@@ -189,7 +189,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                   timeOut += 1
                   response = httpClient.execute(get)
                   if (response.getStatusLine.getStatusCode == 200) {
-                    jsonReturn = Source.fromInputStream(response.getEntity.getContent).mkString
+                    jsonReturn = Source.fromInputStream(response.getEntity.getContent)("UTF-8").mkString
                     jsonAst = JsonParser(jsonReturn)
                     
 					scanResults = jsonAst.asJsObject.fields.get("scan_results") match {
