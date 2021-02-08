@@ -142,6 +142,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
               
 			  val post = new HttpPost(URL)
               post.setHeader("user_agent", "TeamCity")
+              post.setHeader("Content-Type", "application/octet-stream")
               post.setHeader("filename", f.getName)
               if(config.mAPIKey.mkString != "") {
                 post.setHeader("apikey", config.mAPIKey.mkString)

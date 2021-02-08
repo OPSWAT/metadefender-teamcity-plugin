@@ -15,7 +15,7 @@
                     <label for="mURL">MetaDefender URL</label>
                 </td><td>
                     <input type="text" id="mURL" name="mURL" value="${mURL}" class="longField">
-                    <div class="grayNote">e.g.: https://api.metadefender.com/v2/file <br> or http://&lt;MetaDefender Core V4 IP address&gt;:8008/file <br> or http://&lt;MetaDefender Core V3 IP address&gt;:8008/metascan_rest/file</div>
+                    <div class="grayNote">e.g.: https://api.metadefender.com/v4/file <br> or http://&lt;MetaDefender Core V4 IP address&gt;:8008/file <br> or http://&lt;MetaDefender Core V3 IP address&gt;:8008/metascan_rest/file</div>
                 </td>
             </tr><tr>
                 <td>
