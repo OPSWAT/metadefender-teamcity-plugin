@@ -9,8 +9,13 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization._
 
 case class MConfig(
-  mURL: Option[String], mAPIKey: Option[String], mViewDetail: Option[String],
-  mForceScan: Option[String], mFailBuild: Option[String], mTimeOut: Option[String], mSandbox: Option[String]
+    mURL: Option[String],
+    mAPIKey: Option[String],
+    mViewDetail: Option[String],
+    mForceScan: Option[String],
+    mFailBuild: Option[String],
+    mTimeOut: Option[String],
+    mSandbox: Option[String]
 )
 
 class MConfigManager(paths: ServerPaths) {
