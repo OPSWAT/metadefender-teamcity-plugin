@@ -45,7 +45,14 @@
                 </td><td>
                     <input type="checkbox" id="mViewDetail" name="mViewDetail" ${mViewDetail} value="checked">
                 </td>
-            </tr>           
+            </tr>
+            <tr>
+                <td>
+                    <label for="mSandbox">Analyze files with sandbox</label>
+                </td><td>
+                    <input type="checkbox" id="mSandbox" name="mSandbox" ${mSandbox} value="checked">
+                </td>
+            </tr>
             <tr>
                 <td colspan="2">
 				<br>

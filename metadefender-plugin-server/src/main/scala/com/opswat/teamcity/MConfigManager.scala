@@ -10,7 +10,7 @@ import org.json4s.native.Serialization._
 
 case class MConfig(
   mURL: Option[String], mAPIKey: Option[String], mViewDetail: Option[String],
-  mForceScan: Option[String], mFailBuild: Option[String], mTimeOut: Option[String]
+  mForceScan: Option[String], mFailBuild: Option[String], mTimeOut: Option[String], mSandbox: Option[String]
 )
 
 class MConfigManager(paths: ServerPaths) {
@@ -34,6 +34,7 @@ class MConfigManager(paths: ServerPaths) {
       return Option("30")
     return config.flatMap(_.mTimeOut)
   }
+  def mSandbox: Option[String] = config.flatMap(_.mSandbox)
 
   private[teamcity] def update(config: MConfig): Unit = {
     this.config = Some(config)
@@ -54,7 +55,8 @@ class MConfigManager(paths: ServerPaths) {
     "mViewDetail" -> mViewDetail,
     "mForceScan" -> mForceScan,
     "mFailBuild" -> mFailBuild,
-    "mTimeOut" -> mTimeOut
+    "mTimeOut" -> mTimeOut,
+    "mSandbox" -> mSandbox
   )
 
 }

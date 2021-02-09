@@ -22,7 +22,7 @@ class MConfigController(config: MConfigManager, webControllerManager: WebControl
       return Option("")
     }
       config.updateAndPersist(
-      MConfig(param("mURL"), param("mAPIKey"), param("mViewDetail"), checkbox("mForceScan"),checkbox("mFailBuild"), param("mTimeOut")
+      MConfig(param("mURL"), param("mAPIKey"), param("mViewDetail"), checkbox("mForceScan"),checkbox("mFailBuild"), param("mTimeOut"), checkbox("mSandbox")
     ))
 
     new ModelAndView(new RedirectView("/admin/admin.html?item=MetaDefender"))

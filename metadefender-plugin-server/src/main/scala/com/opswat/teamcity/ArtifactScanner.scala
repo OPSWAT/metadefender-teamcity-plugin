@@ -23,34 +23,34 @@ import scala.util.Try
 
 class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
   override def beforeBuildFinish(runningBuild: SRunningBuild) {
-	
+
 	object lockerAllFiles
 	//queue to store all file paths
 	var allFiles = List("")
 	var filePosition = 0
-	
+
     object lockerInfectFiles
 	var infectedFiles = List("")
-    
+
 	object lockerCleanFiles
 	var cleanFiles = List("")
-    
+
 	object lockerOtherFiles
 	var otherFiles = List("")
-    
+
 	object lockerInfectWithNumberEngine
 	var infectedWithNumberEngine = List("")
-       
+
     object lockerTotalFileInArchive
     var totalFileInArchive = 0
-	
+
     var viewDetailsPrefix = ""
     var maxScanTimeSecond = 30*2*60
 	val totalThread = 10
 	var finishedThread = 0
 
-    
-    
+
+
 	//read configuration and prepare some settings
     def prepareConfigs(): Unit = {
       //set Scan timeout
@@ -59,14 +59,14 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
         maxScanTimeSecond = config.mTimeOut.mkString.toInt * 2 * 60
       else
         maxScanTimeSecond = timeout.toInt * 2 * 60 //Sleep 500ms only
-      
+
 	  //set Scan URL, it's kind of complicated checks dues to supported Core versions
       val URL = config.mURL.mkString
       if (URL contains "metadefender.com") {
         viewDetailsPrefix = "https://metadefender.opswat.com/results#!/file/"
         return
       }
-	  
+
 	  //detect Core V3 or V4
       val splitURL = URL.split("/")
       var apiVersionURL = URL + "/apiversion"
@@ -110,21 +110,21 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
       val scanner = new Thread(new Runnable {
         def run() {
           val rootDir = runningBuild.getArtifactsDirectory.getAbsolutePath.mkString
-          
+
 		  while (true) {
-            
+
 			//full file path to scan
 			var fileToScan = ""
-			
+
 			//file name only, for logging
 			var fileToLog = ""
-            
+
 			//make sure we have "/file" at the end
             var URL = config.mURL.mkString
             if (URL.indexOf("/file") < 0) {
               URL = URL + "/file"
             }
-			
+
             try {
               //pick one file in queue to scan
 			  lockerAllFiles.synchronized {
@@ -135,17 +135,20 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                 fileToScan = allFiles(filePosition)
                 filePosition += 1
               }
-             
+
 			  //start submiting file to scan
 			  val f = new File(fileToScan)
 			  fileToLog = f.getName
-              
+
 			  val post = new HttpPost(URL)
               post.setHeader("user_agent", "TeamCity")
               post.setHeader("Content-Type", "application/octet-stream")
               post.setHeader("filename", f.getName)
               if(config.mAPIKey.mkString != "") {
                 post.setHeader("apikey", config.mAPIKey.mkString)
+              }
+              if (config.mSandbox.mkString == "checked") {
+                post.setHeader("sandbox", "windows10")
               }
               post.setEntity(new FileEntity(f))
 
@@ -174,6 +177,13 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     URL = "http://" + sRestIP + "/file"
                   }
                 }
+                val sSandboxId: String = jsonAst.asJsObject.fields.get("sandbox_id") match {
+                  case Some(x: JsString) => x.value
+                  case _ => null
+                }
+                if (sSandboxId != null) {
+                  reportInfo("sandbox_id: " + sSandboxId)
+                }
                 val get = new HttpGet(URL + "/" + sDataID)
                 if(config.mAPIKey.mkString != "")
                   get.setHeader("apikey", config.mAPIKey.mkString)
@@ -192,17 +202,17 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                   if (response.getStatusLine.getStatusCode == 200) {
                     jsonReturn = Source.fromInputStream(response.getEntity.getContent)("UTF-8").mkString
                     jsonAst = JsonParser(jsonReturn)
-                    
+
 					scanResults = jsonAst.asJsObject.fields.get("scan_results") match {
                       case Some(x: JsObject) => x
                       case _ => throw new Exception("Error scan_results json: " + jsonReturn)
                     }
-					
+
                     processInfo = jsonAst.asJsObject.fields.get("process_info") match {
                       case Some(x: JsObject) => x
                       case _ => null
                     }
-					
+
 					//legacy v3
                     if (processInfo == null && scanProgresPercentage != 0) {
                       processProgresPercentage = 100
@@ -212,12 +222,12 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                         case _ => throw new Exception("Error progress_percentage json: " + jsonReturn)
                       }
                     }
-					
+
                     scanProgresPercentage = scanResults.fields.get("progress_percentage") match {
                       case Some(x: JsNumber) => x.value
                       case _ => throw new Exception("Error progress_percentage json: " + jsonReturn)
                     }
-					
+
                     scanAllResultI = scanResults.fields.get("scan_all_result_i") match {
                       case Some(x: JsNumber) => x.value
                       case _ => throw new Exception("Error scan_all_result_i json: " + jsonReturn)
@@ -236,23 +246,23 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                 if (timeOut >= maxScanTimeSecond) {
                   reportError("Time out file: " + fileToLog)
                 } else {
-                  
+
 				  //build infected list
                   var fileInfo: JsObject = JsObject()
                   fileInfo = jsonAst.asJsObject.fields.get("file_info") match {
                     case Some(x: JsObject) => x
                     case _ => throw new Exception("Error scan_results json: " + jsonReturn)
                   }
-				  
+
                   val displayName = fileInfo.asJsObject().fields.get("display_name") match {
                     case Some(x: JsString) => x.value
                     case _ => null
                   }
-				  
+
                   var totalDetectedEngine = 0
-                  
+
 				  //Parsing engine scan result to figureout number of engine detected
-                  //there is no such total_infected_avs!				  
+                  //there is no such total_infected_avs!
                   val scanDetails = scanResults.fields.get("scan_details") match {
                     case Some(x: JsObject) => x
                     case _ => throw new Exception("Error scan_details json: " + jsonReturn);
@@ -267,8 +277,8 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                       totalDetectedEngine += 1
                     }
                   }
-				  
-				  
+
+
                   if (totalDetectedEngine > 0) {
                     val temp = displayName + " " + totalDetectedEngine + " "
                     lockerInfectWithNumberEngine.synchronized {
@@ -416,12 +426,12 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
       //Scan finished
       reportInfo("Total scanned files: " + (Math.max(filePosition, 0) + totalFileInArchive))
-      
+
       if (runningBuild.getParametersProvider.get("system.metadefender_fail_build") != "0") {
         if (infectedFiles.length > 1) {
           // first element is empty string
           infectedWithNumberEngine = infectedWithNumberEngine.sorted
-		  
+
 		  //This is very specific TC logic, it uses the hash to detect if a failure is new or old
 		  //The purpose of this code is if users "Mute" a build because of false positive, next time they run, it should not fail again
 		  //However, if there is any change such as number of engine, new file detected, it will generate a new hash which make build fail again
@@ -456,7 +466,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
         writeFile(otherFiles, scanLogPath)
       }
     }
-	
+
 	//display message in TC log, info level
 	def reportInfo(msg: String): Unit = {
       runningBuild.getBuildLog.message(msg, Status.NORMAL, new Date, DefaultMessagesInfo.MSG_TEXT, DefaultMessagesInfo.SOURCE_ID, null)
@@ -509,7 +519,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
         }
       }
     }
-    
+
 	//no threat detected or whitelist
     def isNoThreatDectected(scanAllResultI: BigDecimal): Boolean = {
       if (scanAllResultI == 0 || scanAllResultI == 7) {
