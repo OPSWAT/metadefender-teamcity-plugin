@@ -147,6 +147,8 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
               }
               if (config.mSandbox.mkString == "checked") {
                 post.setHeader("sandbox", "windows10")
+                // A scan rule is needed to also trigger multiscanning
+                post.setHeader("rule", "multiscan")
               }
               post.setEntity(new FileEntity(f))
 
@@ -214,7 +216,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     }
 
                     //legacy v3
-                    if (processInfo == null && scanProgresPercentage != 0) {
+                    if (processInfo == null && scanProgressPercentage != 0) {
                       processProgressPercentage = 100
                     } else if (processInfo != null) {
                       processProgressPercentage = processInfo.fields.get("progress_percentage") match {
@@ -331,7 +333,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                   /*Check file inside archive*/
                   jsonAst.asJsObject.fields.get("extracted_files") match {
                     case Some(extractedFiles: JsObject) =>
-                      extractedFiles
+                      extractedFiles;
                       extractedFiles.fields.get("files_in_archive") match {
                         case Some(filesInArchive: JsArray) =>
                           filesInArchive
