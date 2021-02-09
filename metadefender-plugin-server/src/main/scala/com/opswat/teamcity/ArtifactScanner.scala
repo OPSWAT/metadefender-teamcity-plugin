@@ -186,8 +186,8 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                 if (config.mAPIKey.mkString != "")
                   get.setHeader("apikey", config.mAPIKey.mkString)
 
-                var scanProgresPercentage: BigDecimal = 0
-                var processProgresPercentage: BigDecimal = 0
+                var scanProgressPercentage: BigDecimal = 0
+                var processProgressPercentage: BigDecimal = 0
                 var timeOut = 0
                 var scanAllResultI: BigDecimal = -1
                 var scanResults: JsObject = JsObject()
@@ -195,7 +195,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
                 //Query scan result
                 while (
-                  (scanProgresPercentage != 100 || processProgresPercentage != 100) && timeOut < maxScanTimeSecond
+                  (scanProgressPercentage != 100 || processProgressPercentage != 100) && timeOut < maxScanTimeSecond
                 ) {
                   timeOut += 1
                   response = httpClient.execute(get)
@@ -215,15 +215,15 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
                     //legacy v3
                     if (processInfo == null && scanProgresPercentage != 0) {
-                      processProgresPercentage = 100
+                      processProgressPercentage = 100
                     } else if (processInfo != null) {
-                      processProgresPercentage = processInfo.fields.get("progress_percentage") match {
+                      processProgressPercentage = processInfo.fields.get("progress_percentage") match {
                         case Some(x: JsNumber) => x.value
                         case _                 => throw new Exception("Error progress_percentage json: " + jsonReturn)
                       }
                     }
 
-                    scanProgresPercentage = scanResults.fields.get("progress_percentage") match {
+                    scanProgressPercentage = scanResults.fields.get("progress_percentage") match {
                       case Some(x: JsNumber) => x.value
                       case _                 => throw new Exception("Error progress_percentage json: " + jsonReturn)
                     }
@@ -261,7 +261,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
                   var totalDetectedEngine = 0
 
-                  //Parsing engine scan result to figureout number of engine detected
+                  //Parsing engine scan result to figure out number of engine detected
                   //there is no such total_infected_avs!
                   val scanDetails = scanResults.fields.get("scan_details") match {
                     case Some(x: JsObject) => x
@@ -283,14 +283,14 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     lockerInfectWithNumberEngine.synchronized {
                       infectedWithNumberEngine = temp :: infectedWithNumberEngine
                     }
-                  } else if (!isNoThreatDectected(scanAllResultI)) {
+                  } else if (!isNoThreatDetected(scanAllResultI)) {
                     var temp = displayName + " " + scanAllResultI + " "
                     lockerInfectWithNumberEngine.synchronized {
                       infectedWithNumberEngine = temp :: infectedWithNumberEngine
                     }
                   }
 
-                  //Check if has or dont has progressInfo
+                  //Check if it has progressInfo
                   if (processInfo == null) {
                     val scanAllResultA = scanResults.fields.get("scan_all_result_a") match {
                       case Some(x: JsString) => x.value
@@ -372,7 +372,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                               lockerInfectWithNumberEngine.synchronized {
                                 infectedWithNumberEngine = temp :: infectedWithNumberEngine
                               }
-                            } else if (isNoThreatDectected(scan_result_i)) {
+                            } else if (isNoThreatDetected(scan_result_i)) {
                               lockerCleanFiles.synchronized {
                                 cleanFiles = tm :: cleanFiles
                               }
@@ -530,7 +530,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
     //prepare logging, data
     def processScanResult(scanAllResultI: BigDecimal, scanAllResultA: String, fileToLog: String, sDataID: String) = {
-      if (isNoThreatDectected(scanAllResultI)) {
+      if (isNoThreatDetected(scanAllResultI)) {
         lockerCleanFiles.synchronized {
           val tm = fileToLog + makeViewDetailLink(sDataID)
           cleanFiles = tm :: cleanFiles
@@ -551,7 +551,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
     }
 
     //no threat detected or whitelist
-    def isNoThreatDectected(scanAllResultI: BigDecimal): Boolean = {
+    def isNoThreatDetected(scanAllResultI: BigDecimal): Boolean = {
       if (scanAllResultI == 0 || scanAllResultI == 7) {
         return true
       }
