@@ -21,12 +21,12 @@
           <artifactId>json4s-native_2.11</artifactId>
           <version>3.2.11</version>
       </dependency>
-	  
+
 	 <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 	<dependency>
 		<groupId>org.apache.httpcomponents</groupId>
 		<artifactId>httpclient</artifactId>
-		<version>[4.3.6,)</version>
+		<version>4.1.1</version>
 	</dependency>
 	<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
 <dependency>
