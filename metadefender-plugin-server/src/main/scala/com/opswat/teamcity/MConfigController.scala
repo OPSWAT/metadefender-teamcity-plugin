@@ -29,8 +29,7 @@ class MConfigController(config: MConfigManager, webControllerManager: WebControl
         param("mViewDetail"),
         checkbox("mForceScan"),
         checkbox("mFailBuild"),
-        param("mTimeOut"),
-        checkbox("mSandbox")
+        param("mTimeOut")
       )
     )
 

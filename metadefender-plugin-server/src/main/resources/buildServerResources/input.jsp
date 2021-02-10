@@ -47,13 +47,6 @@
                 </td>
             </tr>
             <tr>
-                <td>
-                    <label for="mSandbox">Analyze files with sandbox</label>
-                </td><td>
-                    <input type="checkbox" id="mSandbox" name="mSandbox" ${mSandbox} value="checked">
-                </td>
-            </tr>
-            <tr>
                 <td colspan="2">
 				<br>
                      To set different options for a particular build, you can set the following system properties in the Build Configuration Parameters: <br>

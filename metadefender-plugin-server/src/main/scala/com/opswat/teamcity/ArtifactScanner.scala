@@ -145,11 +145,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
               if (config.mAPIKey.mkString != "") {
                 post.setHeader("apikey", config.mAPIKey.mkString)
               }
-              if (config.mSandbox.mkString == "checked") {
-                post.setHeader("sandbox", "windows10")
-                // A scan rule is needed to also trigger multiscanning
-                post.setHeader("rule", "multiscan")
-              }
+
               post.setEntity(new FileEntity(f))
 
               val httpParams: HttpParams = new BasicHttpParams()
@@ -177,13 +173,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     URL = "http://" + sRestIP + "/file"
                   }
                 }
-                val sSandboxId: String = jsonAst.asJsObject.fields.get("sandbox_id") match {
-                  case Some(x: JsString) => x.value
-                  case _                 => null
-                }
-                if (sSandboxId != null) {
-                  reportInfo("sandbox_id: " + sSandboxId)
-                }
+
                 val get = new HttpGet(URL + "/" + sDataID)
                 if (config.mAPIKey.mkString != "")
                   get.setHeader("apikey", config.mAPIKey.mkString)

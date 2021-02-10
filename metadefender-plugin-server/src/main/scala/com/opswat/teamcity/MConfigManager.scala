@@ -14,8 +14,7 @@ case class MConfig(
     mViewDetail: Option[String],
     mForceScan: Option[String],
     mFailBuild: Option[String],
-    mTimeOut: Option[String],
-    mSandbox: Option[String]
+    mTimeOut: Option[String]
 )
 
 class MConfigManager(paths: ServerPaths) {
@@ -39,7 +38,6 @@ class MConfigManager(paths: ServerPaths) {
       return Option("30")
     return config.flatMap(_.mTimeOut)
   }
-  def mSandbox: Option[String] = config.flatMap(_.mSandbox)
 
   private[teamcity] def update(config: MConfig): Unit = {
     this.config = Some(config)
@@ -60,8 +58,7 @@ class MConfigManager(paths: ServerPaths) {
     "mViewDetail" -> mViewDetail,
     "mForceScan" -> mForceScan,
     "mFailBuild" -> mFailBuild,
-    "mTimeOut" -> mTimeOut,
-    "mSandbox" -> mSandbox
+    "mTimeOut" -> mTimeOut
   )
 
 }
