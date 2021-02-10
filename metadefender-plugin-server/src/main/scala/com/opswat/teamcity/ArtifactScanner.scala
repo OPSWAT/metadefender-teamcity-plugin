@@ -235,6 +235,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                       case _                 => throw new Exception("Error scan_all_result_i json: " + jsonReturn)
                     }
                   } else {
+                    response.getEntity().consumeContent();
                     val tm = s"Scan error, code " + response.getStatusLine.getStatusCode + s" file: " + fileToLog
                     reportError(tm)
                     lockerOtherFiles.synchronized {
