@@ -45,7 +45,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
     var totalFileInArchive = 0
 
     var viewDetailsPrefix = ""
-    var maxScanTimeSecond = 30 * 2 * 60
+    var maxScanTimeSecond = 30 * 60
     val totalThread = 10
     var finishedThread = 0
 
@@ -54,9 +54,9 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
       //set Scan timeout
       val timeout = runningBuild.getParametersProvider.get("system.metadefender_scan_timeout")
       if (timeout == "" || !Try(timeout.toInt).isSuccess)
-        maxScanTimeSecond = config.mTimeOut.mkString.toInt * 2 * 60
+        maxScanTimeSecond = config.mTimeOut.mkString.toInt * 60
       else
-        maxScanTimeSecond = timeout.toInt * 2 * 60 //Sleep 500ms only
+        maxScanTimeSecond = timeout.toInt * 60
 
       //set Scan URL, it's kind of complicated checks dues to supported Core versions
       val URL = config.mURL.mkString
@@ -180,16 +180,16 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
                 var scanProgressPercentage: BigDecimal = 0
                 var processProgressPercentage: BigDecimal = 0
-                var timeOut = 0
+                var startTime: BigDecimal = System.currentTimeMillis()
+                var runTimeSeconds: BigDecimal = 0
                 var scanAllResultI: BigDecimal = -1
                 var scanResults: JsObject = JsObject()
                 var processInfo: JsObject = JsObject()
 
                 //Query scan result
                 while (
-                  (scanProgressPercentage != 100 || processProgressPercentage != 100) && timeOut < maxScanTimeSecond
+                  (scanProgressPercentage != 100 || processProgressPercentage != 100) && runTimeSeconds < maxScanTimeSecond
                 ) {
-                  timeOut += 1
                   response = httpClient.execute(get)
                   if (response.getStatusLine.getStatusCode == 200) {
                     jsonReturn = Source.fromInputStream(response.getEntity.getContent)("UTF-8").mkString
@@ -224,6 +224,8 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                       case Some(x: JsNumber) => x.value
                       case _                 => throw new Exception("Error scan_all_result_i json: " + jsonReturn)
                     }
+
+                    Thread.sleep(500)
                   } else {
                     response.getEntity().consumeContent();
                     val tm = s"Scan error, code " + response.getStatusLine.getStatusCode + s" file: " + fileToLog
@@ -231,12 +233,14 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     lockerOtherFiles.synchronized {
                       otherFiles = tm :: otherFiles
                     }
+
+                    Thread.sleep(5000)
                   }
-                  Thread.sleep(500)
+                  runTimeSeconds = (System.currentTimeMillis() - startTime) / 1000
                 }
 
                 //Checking scan result i
-                if (timeOut >= maxScanTimeSecond) {
+                if (runTimeSeconds >= maxScanTimeSecond) {
                   reportError("Time out file: " + fileToLog)
                 } else {
 
@@ -324,10 +328,8 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                   /*Check file inside archive*/
                   jsonAst.asJsObject.fields.get("extracted_files") match {
                     case Some(extractedFiles: JsObject) =>
-                      extractedFiles;
                       extractedFiles.fields.get("files_in_archive") match {
                         case Some(filesInArchive: JsArray) =>
-                          filesInArchive
                           val totalFile = filesInArchive.elements.size
                           for (i <- 0 until totalFile) {
                             val t = filesInArchive.elements.apply(i)
@@ -404,7 +406,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
     ) {
       reportInfo("Scanning artifacts")
       prepareConfigs()
-      reportInfo("Scan timeout: " + maxScanTimeSecond / 2 + " (s)")
+      reportInfo("Scan timeout: " + maxScanTimeSecond + " (s)")
       getAllFiles(runningBuild).foreach { case (name: String, artifact: File) =>
         //Push all files to list, do not put those folders such as
         //C:\ProgramData\JetBrains\TeamCity\system\artifacts\Test\tt\38\.teamcity\logs\buildLog.msg5
