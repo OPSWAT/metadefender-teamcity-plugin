@@ -397,28 +397,6 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                   otherFiles = tm :: otherFiles
                 }
               }
-
-              if (sandboxEnabled && sSandboxID != null) {
-                val sandboxResult = querySandboxResult(URL, sSandboxID)
-
-                var tm = fileToLog + " sandbox result: " + sandboxResult + makeViewDetailLink(sDataID)
-                if (sandboxResult.toLowerCase.equals("infected")) {
-                  reportError(tm)
-                  lockerInfectFiles.synchronized {
-                    infectedFiles = tm :: infectedFiles
-                  }
-                } else if (sandboxResult.toLowerCase.equals("no threat detected")) {
-                  reportInfo(tm)
-                  lockerCleanFiles.synchronized {
-                    cleanFiles = tm :: cleanFiles
-                  }
-                } else {
-                  reportError(tm)
-                  lockerOtherFiles.synchronized {
-                    otherFiles = tm :: otherFiles
-                  }
-                }
-              }
             } catch {
               case e: Exception =>
                 val tm = "Scan error: " + fileToLog + ", error: " + e.getMessage.toString
@@ -555,70 +533,6 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
           return " | " + viewDetailsPrefix + dataID
       else
         return ""
-    }
-
-    def querySandboxResult(sSandboxID: String): String = {
-      //make sure we have "/sandbox" at the end
-        var URL = config.mURL.mkString
-        if (URL.indexOf("/sandbox") < 0) {
-          URL = URL.replaceAll("/file$", "") + "/sandbox"
-        }
-
-      val get = new HttpGet(URL + "/" + sSandboxID)
-      if (config.mAPIKey.mkString != "")
-        get.setHeader("apikey", config.mAPIKey.mkString)
-
-      var scanProgressPercentage: BigDecimal = 0
-
-      var startTime: BigDecimal = System.currentTimeMillis()
-      var runTimeSeconds: BigDecimal = 0
-      var scanAllResultA: String
-      var scanResults: JsObject = JsObject()
-
-      //Query sandbox scan result
-      while (
-        (scanProgressPercentage != 100 || processProgressPercentage != 100) && runTimeSeconds < maxScanTimeSecond
-      ) {
-        response = httpClient.execute(get)
-        if (response.getStatusLine.getStatusCode == 200) {
-          jsonReturn = Source.fromInputStream(response.getEntity.getContent)("UTF-8").mkString
-          jsonAst = JsonParser(jsonReturn)
-
-          scanResults = jsonAst.asJsObject.fields.get("scan_results") match {
-            case Some(x: JsObject) => x
-            case _                 => throw new Exception("Error scan_results json: " + jsonReturn)
-          }
-
-          scanProgressPercentage = scanResults.fields.get("progress_percentage") match {
-            case Some(x: JsNumber) => x.value
-            case _                 => throw new Exception("Error progress_percentage json: " + jsonReturn)
-          }
-
-          scanAllResultA = scanResults.fields.get("scan_all_result_a") match {
-            case Some(x: JsString) => x.value
-            case _                 => throw new Exception("Error scan_all_result_a json: " + jsonReturn)
-          }
-
-          Thread.sleep(500)
-        } else {
-          response.getEntity().consumeContent();
-          val tm = s"Scan error, code " + response.getStatusLine.getStatusCode + s" file: " + fileToLog
-          reportError(tm)
-          lockerOtherFiles.synchronized {
-            otherFiles = tm :: otherFiles
-          }
-
-          Thread.sleep(5000)
-        }
-        runTimeSeconds = (System.currentTimeMillis() - startTime) / 1000
-      }
-
-      if (runTimeSeconds >= maxScanTimeSecond) {
-        reportError("Sandbox time out for file: " + fileToLog)
-        return ""
-      }
-
-      return scanAllResultA
     }
 
     //prepare logging, data
