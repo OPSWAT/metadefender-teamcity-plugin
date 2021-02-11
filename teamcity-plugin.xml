@@ -3,7 +3,7 @@
     <info>
         <name>OPSWAT MetaDefender</name>
         <display-name>OPSWAT MetaDefender</display-name>
-        <version>1.0.0.0</version>
+        <version>1.0.0.49</version>
         <description>Automatically scan artifacts with MetaDefender</description>
         <download-url>Plugin download URL</download-url>
         <email>metadefender@opswat.com</email>
