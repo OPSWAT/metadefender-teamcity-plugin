@@ -7,7 +7,12 @@ import javax.servlet.http.HttpServletRequest
 import java.util.Map
 
 class MConfigPage(extension: MConfigManager, pagePlaces: PagePlaces, descriptor: PluginDescriptor)
-  extends AdminPage(pagePlaces, "OPSWAT MetaDefender", descriptor.getPluginResourcesPath("input.jsp"), "OPSWAT MetaDefender") {
+    extends AdminPage(
+      pagePlaces,
+      "OPSWAT MetaDefender",
+      descriptor.getPluginResourcesPath("input.jsp"),
+      "OPSWAT MetaDefender"
+    ) {
 
   register()
 
