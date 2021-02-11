@@ -48,9 +48,33 @@
             </tr>
             <tr>
                 <td>
-                    <label for="mSandbox">Analyze files with sandbox</label>
+                    <label for="mSandboxEnabled">Analyze files automatically with Sandbox</label>
                 </td><td>
-                    <input type="checkbox" id="mSandbox" name="mSandbox" ${mSandbox} value="checked">
+                    <input type="checkbox" id="mSandboxEnabled" name="mSandboxEnabled" ${mSandboxEnabled} value="checked">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="mSandboxOS">Sandbox operating system</label>
+                </td><td>
+                    <input type="text" id="mSandboxOS" name="mSandboxOS" value="${mSandboxOS}">
+                    <div class="grayNote">Possible values: windows7 or windows10</div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="mSandboxTimeOut">Sandbox analysis timeout</label>
+                </td><td>
+                    <input type="text" id="mSandboxTimeOut" name="mSandboxTimeOut" value="${mSandboxTimeOut}">
+                    <div class="grayNote">Possible values: short or long (short=150s, long=300s)</div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="mSandboxBrowser">Sandbox browser to use during analysis</label>
+                </td><td>
+                    <input type="text" id="mSandboxBrowser" name="mSandboxBrowser" value="${mSandboxBrowser}">
+                    <div class="grayNote">Possible values: os_default, chrome or firefox</div>
                 </td>
             </tr>
             <tr>

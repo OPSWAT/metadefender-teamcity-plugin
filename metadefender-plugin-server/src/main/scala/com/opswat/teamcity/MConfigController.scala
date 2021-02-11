@@ -30,7 +30,10 @@ class MConfigController(config: MConfigManager, webControllerManager: WebControl
         checkbox("mForceScan"),
         checkbox("mFailBuild"),
         param("mTimeOut"),
-        checkbox("mSandbox")
+        checkbox("mSandboxEnabled"),
+        param("mSandboxOS"),
+        param("mSandboxTimeOut"),
+        param("mSandboxBrowser")
       )
     )
 

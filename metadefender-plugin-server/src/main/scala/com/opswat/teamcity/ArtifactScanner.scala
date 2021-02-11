@@ -145,7 +145,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
               if (config.mAPIKey.mkString != "") {
                 post.setHeader("apikey", config.mAPIKey.mkString)
               }
-              val sandboxEnabled = (config.mSandbox.mkString == "checked")
+              val sandboxEnabled = (config.mSandboxEnabled.mkString == "checked")
               if (sandboxEnabled) {
                 post.setHeader("sandbox", "windows10")
                 // A scan rule is needed to also trigger multiscanning
