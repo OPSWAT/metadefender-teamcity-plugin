@@ -165,19 +165,16 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                 if (sandboxOS == "") {
                   sandboxOS = "windows10"
                 }
-                reportInfo("sandbox OS: " + sandboxOS)
                 post.setHeader("sandbox", sandboxOS)
 
                 val sandboxTimeOut =
                   getBuildParameter("system.metadefender_sandbox_timeout", config.mSandboxTimeOut.mkString)
-                reportInfo("sandbox timeout: " + sandboxTimeOut)
                 if (sandboxTimeOut != "") {
                   post.setHeader("sandbox_timeout", sandboxTimeOut)
                 }
 
                 val sandboxBrowser =
                   getBuildParameter("system.metadefender_sandbox_browser", config.mSandboxBrowser.mkString)
-                reportInfo("sandbox browser: " + sandboxBrowser)
                 if (sandboxBrowser != "") {
                   post.setHeader("sandbox_browser", sandboxBrowser)
                 }
@@ -209,15 +206,6 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     URL = "https://" + sRestIP + "/file"
                   } else {
                     URL = "http://" + sRestIP + "/file"
-                  }
-                }
-                if (sandboxEnabled) {
-                  val sSandboxID: String = jsonAst.asJsObject.fields.get("sandbox_id") match {
-                    case Some(x: JsString) => x.value
-                    case _                 => null
-                  }
-                  if (sSandboxID != null) {
-                    reportInfo("sandbox_id: " + sSandboxID)
                   }
                 }
                 val get = new HttpGet(URL + "/" + sDataID)
