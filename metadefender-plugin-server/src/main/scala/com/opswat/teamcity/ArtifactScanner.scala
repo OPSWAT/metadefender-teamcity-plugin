@@ -103,6 +103,15 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
       viewDetailsPrefix = splitURL(0) + "//" + splitURL(2) + "/#/scanresult/"
     }
 
+    //return the value of a build parameter or the default if the parameter does not exist
+    def getBuildParameter(parameter: String, default: String = ""): String = {
+      val value = runningBuild.getParametersProvider.get(parameter)
+      if (value != null && value != "") {
+        return value
+      }
+      return default
+    }
+
     //main scan function, it's a thread for faster scan
     def scanThread(): Unit = {
       val scanner = new Thread(new Runnable {
@@ -145,9 +154,33 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
               if (config.mAPIKey.mkString != "") {
                 post.setHeader("apikey", config.mAPIKey.mkString)
               }
-              val sandboxEnabled = (config.mSandboxEnabled.mkString == "checked")
+
+              val buildParams = runningBuild.getParametersProvider
+              val sandboxEnabled = (buildParams.get("system.metadefender_scan_artifact_with_sandbox") == "1" ||
+                config.mSandboxEnabled.mkString == "checked")
+
               if (sandboxEnabled) {
-                post.setHeader("sandbox", "windows10")
+                var sandboxOS =
+                  getBuildParameter("system.metadefender_sandbox_os", config.mSandboxOS.mkString)
+                if (sandboxOS == "") {
+                  sandboxOS = "windows10"
+                }
+                reportInfo("sandbox OS: " + sandboxOS)
+                post.setHeader("sandbox", sandboxOS)
+
+                val sandboxTimeOut =
+                  getBuildParameter("system.metadefender_sandbox_timeout", config.mSandboxTimeOut.mkString)
+                reportInfo("sandbox timeout: " + sandboxTimeOut)
+                if (sandboxTimeOut != "") {
+                  post.setHeader("sandbox_timeout", sandboxTimeOut)
+                }
+
+                val sandboxBrowser =
+                  getBuildParameter("system.metadefender_sandbox_browser", config.mSandboxBrowser.mkString)
+                reportInfo("sandbox browser: " + sandboxBrowser)
+                if (sandboxBrowser != "") {
+                  post.setHeader("sandbox_browser", sandboxBrowser)
+                }
                 // A scan rule is needed to also trigger multiscanning
                 post.setHeader("rule", "multiscan")
               }
@@ -178,12 +211,14 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     URL = "http://" + sRestIP + "/file"
                   }
                 }
-                val sSandboxID: String = jsonAst.asJsObject.fields.get("sandbox_id") match {
-                  case Some(x: JsString) => x.value
-                  case _                 => null
-                }
-                if (sSandboxID != null) {
-                  reportInfo("sandbox_id: " + sSandboxID)
+                if (sandboxEnabled) {
+                  val sSandboxID: String = jsonAst.asJsObject.fields.get("sandbox_id") match {
+                    case Some(x: JsString) => x.value
+                    case _                 => null
+                  }
+                  if (sSandboxID != null) {
+                    reportInfo("sandbox_id: " + sSandboxID)
+                  }
                 }
                 val get = new HttpGet(URL + "/" + sDataID)
                 if (config.mAPIKey.mkString != "")

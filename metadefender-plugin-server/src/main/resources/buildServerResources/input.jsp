@@ -85,6 +85,10 @@
                      <b> system.metadefender_scan_log</b> - If set to 1, the scan log metadefender_scan_log.txt will be created in the artifact folder. The default value is 0.<br>
                      <b> system.metadefender_fail_build</b> - If set to 1, and a threat is found the build will automatically fail. The default value is 1.<br>
                      <b> system.metadefender_scan_timeout</b> - Enter time out for one file in mins<br>
+                     <b> system.metadefender_scan_artifact_with_sandbox</b> - If set to 1, the artifact will automatically be analyzed by Sandbox when the build runs. The default value is 0.<br>
+                     <b> system.metadefender_sandbox_os</b> - Set the Sandbox operating system: windows7 or windows10. The default value is windows10.<br>
+                     <b> system.metadefender_sandbox_timeout</b> - Set the Sandbox analysis timeout: short (150s) or long (300s). The default value is short.<br>
+                     <b> system.metadefender_sandbox_browser</b> - Set the Sandbox browser to use during analysis: os_default, chrome or firefox. The default value is os_default.<br>
                      <i>Note that specifying system properties in the build parameters will override the global options. If you wish to use the global settings for the build, do not enter any system properties.</i>
                      <br>
                      <br>
