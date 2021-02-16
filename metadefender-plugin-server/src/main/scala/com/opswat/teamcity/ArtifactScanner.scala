@@ -157,7 +157,9 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
 
               val buildParams = runningBuild.getParametersProvider
               val sandboxEnabled = (buildParams.get("system.metadefender_scan_artifact_with_sandbox") == "1" ||
-                config.mSandboxEnabled.mkString == "checked")
+                (buildParams.get("system.metadefender_scan_artifact_with_sandbox") != "0" &&
+                  config.mSandboxEnabled.mkString == "checked")) &&
+                  (URL contains "api.metadefender.com")
 
               if (sandboxEnabled) {
                 var sandboxOS =
@@ -348,7 +350,10 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                         infectedFiles = tm :: infectedFiles
                       }
                     } else if (processResult.toLowerCase.equals("allowed")) {
-                      reportInfo(tm)
+                      //The user should see the link to all scan reports if Sandbox is enabled
+                      if (sandboxEnabled) {
+                        reportInfo(tm)
+                      }
                       lockerCleanFiles.synchronized {
                         cleanFiles = tm :: cleanFiles
                       }
