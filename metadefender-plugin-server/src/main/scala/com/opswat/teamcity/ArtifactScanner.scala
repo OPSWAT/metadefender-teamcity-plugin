@@ -103,6 +103,15 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
       viewDetailsPrefix = splitURL(0) + "//" + splitURL(2) + "/#/scanresult/"
     }
 
+    //return the value of a build parameter or the default if the parameter does not exist
+    def getBuildParameter(parameter: String, default: String = ""): String = {
+      val value = runningBuild.getParametersProvider.get(parameter)
+      if (value != null && value != "") {
+        return value
+      }
+      return default
+    }
+
     //main scan function, it's a thread for faster scan
     def scanThread(): Unit = {
       val scanner = new Thread(new Runnable {
@@ -146,6 +155,34 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                 post.setHeader("apikey", config.mAPIKey.mkString)
               }
 
+              val buildParams = runningBuild.getParametersProvider
+              val sandboxEnabled = (buildParams.get("system.metadefender_scan_artifact_with_sandbox") == "1" ||
+                (buildParams.get("system.metadefender_scan_artifact_with_sandbox") != "0" &&
+                  config.mSandboxEnabled.mkString == "checked")) &&
+                  (URL contains "api.metadefender.com")
+
+              if (sandboxEnabled) {
+                var sandboxOS =
+                  getBuildParameter("system.metadefender_sandbox_os", config.mSandboxOS.mkString)
+                if (sandboxOS == "") {
+                  sandboxOS = "windows10"
+                }
+                post.setHeader("sandbox", sandboxOS)
+
+                val sandboxTimeOut =
+                  getBuildParameter("system.metadefender_sandbox_timeout", config.mSandboxTimeOut.mkString)
+                if (sandboxTimeOut != "") {
+                  post.setHeader("sandbox_timeout", sandboxTimeOut)
+                }
+
+                val sandboxBrowser =
+                  getBuildParameter("system.metadefender_sandbox_browser", config.mSandboxBrowser.mkString)
+                if (sandboxBrowser != "") {
+                  post.setHeader("sandbox_browser", sandboxBrowser)
+                }
+                // A scan rule is needed to also trigger multiscanning
+                post.setHeader("rule", "multiscan")
+              }
               post.setEntity(new FileEntity(f))
 
               val httpParams: HttpParams = new BasicHttpParams()
@@ -173,7 +210,6 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     URL = "http://" + sRestIP + "/file"
                   }
                 }
-
                 val get = new HttpGet(URL + "/" + sDataID)
                 if (config.mAPIKey.mkString != "")
                   get.setHeader("apikey", config.mAPIKey.mkString)
@@ -291,7 +327,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                   if (processInfo == null) {
                     val scanAllResultA = scanResults.fields.get("scan_all_result_a") match {
                       case Some(x: JsString) => x.value
-                      case _                 => throw new Exception("Error scan_all_result_a json: ")
+                      case _                 => throw new Exception("Error scan_all_result_a json: " + jsonReturn)
                     }
                     processScanResult(scanAllResultI, scanAllResultA, fileToLog, sDataID)
                   } else {
@@ -314,6 +350,10 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                         infectedFiles = tm :: infectedFiles
                       }
                     } else if (processResult.toLowerCase.equals("allowed")) {
+                      //The user should see the link to all scan reports if Sandbox is enabled
+                      if (sandboxEnabled) {
+                        reportInfo(tm)
+                      }
                       lockerCleanFiles.synchronized {
                         cleanFiles = tm :: cleanFiles
                       }
@@ -325,7 +365,7 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
                     }
                   }
 
-                  /*Check file inside archive*/
+                  //Check file inside archive
                   jsonAst.asJsObject.fields.get("extracted_files") match {
                     case Some(extractedFiles: JsObject) =>
                       extractedFiles.fields.get("files_in_archive") match {

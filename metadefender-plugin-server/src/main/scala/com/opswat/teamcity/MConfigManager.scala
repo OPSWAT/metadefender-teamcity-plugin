@@ -14,7 +14,11 @@ case class MConfig(
     mViewDetail: Option[String],
     mForceScan: Option[String],
     mFailBuild: Option[String],
-    mTimeOut: Option[String]
+    mTimeOut: Option[String],
+    mSandboxEnabled: Option[String],
+    mSandboxOS: Option[String],
+    mSandboxTimeOut: Option[String],
+    mSandboxBrowser: Option[String]
 )
 
 class MConfigManager(paths: ServerPaths) {
@@ -38,6 +42,10 @@ class MConfigManager(paths: ServerPaths) {
       return Option("30")
     return config.flatMap(_.mTimeOut)
   }
+  def mSandboxEnabled: Option[String] = config.flatMap(_.mSandboxEnabled)
+  def mSandboxOS: Option[String] = config.flatMap(_.mSandboxOS)
+  def mSandboxTimeOut: Option[String] = config.flatMap(_.mSandboxTimeOut)
+  def mSandboxBrowser: Option[String] = config.flatMap(_.mSandboxBrowser)
 
   private[teamcity] def update(config: MConfig): Unit = {
     this.config = Some(config)
@@ -58,7 +66,11 @@ class MConfigManager(paths: ServerPaths) {
     "mViewDetail" -> mViewDetail,
     "mForceScan" -> mForceScan,
     "mFailBuild" -> mFailBuild,
-    "mTimeOut" -> mTimeOut
+    "mTimeOut" -> mTimeOut,
+    "mSandboxEnabled" -> mSandboxEnabled,
+    "mSandboxOS" -> mSandboxOS,
+    "mSandboxTimeOut" -> mSandboxTimeOut,
+    "mSandboxBrowser" -> mSandboxBrowser
   )
 
 }
