@@ -18,8 +18,7 @@
                     <td>
                         <input type="text" id="mURL" name="mURL" value="${mURL}" class="longField">
                         <div class="grayNote">e.g.: https://api.metadefender.com/v4/file <br> or http://&lt;MetaDefender
-                            Core V4 IP address&gt;:8008/file <br> or http://&lt;MetaDefender Core V3 IP
-                            address&gt;:8008/metascan_rest/file</div>
+                            Core V4 IP address&gt;:8008/file</div>
                     </td>
                 </tr>
                 <tr>
@@ -28,6 +27,13 @@
                     </td>
                     <td>
                         <input type="text" id="mAPIKey" name="mAPIKey" value="${mAPIKey}" class="longField">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="mRule">Workflow Rule</label>
+                    </td><td>
+                        <input type="text" id="mRule" name="mRule" value="${mRule}" class="longField">
                     </td>
                 </tr>
                 <tr>
@@ -91,6 +97,7 @@
                     <td>
                         <input type="text" id="mSandboxBrowser" name="mSandboxBrowser" value="${mSandboxBrowser}">
                         <div class="grayNote">Possible values: os_default, chrome or firefox</div>
+                        <input type="hidden" id="tc-csrf-token" name="tc-csrf-token" value="<%= session.getAttribute("tc-csrf-token") %>" />
                     </td>
                 </tr>
                 <tr>
@@ -100,6 +107,7 @@
                         the Build Configuration Parameters: <br>
                         <b> system.metadefender_scan_artifact</b> - If set to 1, the artifact will automatically be
                         scanned when the build runs. The default value is 0.<br>
+                        <b> system.metadefender_scan_workflow</b> - Enter MetaDefender a Workflow name.<br>
                         <b> system.metadefender_scan_log</b> - If set to 1, the scan log metadefender_scan_log.txt will
                         be created in the artifact folder. The default value is 0.<br>
                         <b> system.metadefender_fail_build</b> - If set to 1, and a threat is found the build will

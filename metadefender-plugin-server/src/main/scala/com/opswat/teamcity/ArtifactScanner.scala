@@ -45,63 +45,10 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
     var totalFileInArchive = 0
 
     var viewDetailsPrefix = ""
+    var workflowRule = ""
     var maxScanTimeSecond = 30 * 60
     val totalThread = 10
     var finishedThread = 0
-
-    //read configuration and prepare some settings
-    def prepareConfigs(): Unit = {
-      //set Scan timeout
-      val timeout = runningBuild.getParametersProvider.get("system.metadefender_scan_timeout")
-      if (timeout == "" || !Try(timeout.toInt).isSuccess)
-        maxScanTimeSecond = config.mTimeOut.mkString.toInt * 60
-      else
-        maxScanTimeSecond = timeout.toInt * 60
-
-      //set Scan URL, it's kind of complicated checks dues to supported Core versions
-      val URL = config.mURL.mkString
-      if (URL contains "metadefender.com") {
-        viewDetailsPrefix = "https://metadefender.opswat.com/results#!/file/"
-        return
-      }
-
-      //detect Core V3 or V4
-      val splitURL = URL.split("/")
-      var apiVersionURL = URL + "/apiversion"
-      if (URL.indexOf("/file") > 0) {
-        apiVersionURL = splitURL(0) + "//" + splitURL(2) + "/apiversion"
-      }
-
-      val get = new HttpGet(apiVersionURL)
-      if (config.mAPIKey.mkString != "") {
-        get.setHeader("apikey", config.mAPIKey.mkString)
-      }
-
-      val httpParams: HttpParams = new BasicHttpParams()
-      HttpConnectionParams.setConnectionTimeout(httpParams, 120000)
-      val httpClient = new DefaultHttpClient(httpParams)
-
-      try {
-        val response = httpClient.execute(get)
-        if (response.getStatusLine.getStatusCode == 200) {
-          val jsonReturn = Source.fromInputStream(response.getEntity.getContent).mkString
-          //hard to parse json here since v3 and v4 returning different result, just check string is fine
-          if (jsonReturn contains "4") {
-            viewDetailsPrefix = splitURL(0) + "//" + splitURL(2) + "/#/public/filescan/dataId/"
-            return
-          }
-        }
-      } catch {
-        case e: Exception =>
-          val tm = "Can't call " + URL + "/apiversion, error: " + e.getMessage
-          reportError(tm)
-          lockerOtherFiles.synchronized {
-            otherFiles = tm :: otherFiles
-          }
-      }
-      //all cases are treated as
-      viewDetailsPrefix = splitURL(0) + "//" + splitURL(2) + "/#/scanresult/"
-    }
 
     //return the value of a build parameter or the default if the parameter does not exist
     def getBuildParameter(parameter: String, default: String = ""): String = {
@@ -110,6 +57,31 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
         return value
       }
       return default
+    }
+    
+    //read configuration and prepare some settings
+    def prepareConfigs(): Unit = {
+      //set Scan timeout
+      val timeout = getBuildParameter("system.metadefender_scan_timeout")
+      if (timeout == "" || !Try(timeout.toInt).isSuccess)
+        maxScanTimeSecond = config.mTimeOut.mkString.toInt * 60
+      else
+        maxScanTimeSecond = timeout.toInt * 60
+
+      //read workflow name
+      workflowRule = getBuildParameter("system.metadefender_scan_workflow")
+      if(workflowRule == null || workflowRule == "")
+        workflowRule = config.mRule.mkString 
+      
+      //set Scan URL, it's kind of complicated checks dues to supported Core versions
+      val URL = config.mURL.mkString
+      if (URL contains "metadefender.com") {
+        viewDetailsPrefix = "https://metadefender.opswat.com/results#!/file/"
+        return
+      }
+
+      val splitURL = URL.split("/")
+      viewDetailsPrefix = splitURL(0) + "//" + splitURL(2) + "/#/public/filescan/dataId/"     
     }
 
     //main scan function, it's a thread for faster scan
@@ -153,6 +125,10 @@ class ArtifactScanner(config: MConfigManager) extends BuildServerAdapter {
               post.setHeader("filename", f.getName)
               if (config.mAPIKey.mkString != "") {
                 post.setHeader("apikey", config.mAPIKey.mkString)
+              }
+
+              if(workflowRule != "") {
+                post.setHeader("rule", workflowRule)
               }
 
               val buildParams = runningBuild.getParametersProvider

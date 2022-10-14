@@ -26,6 +26,7 @@ class MConfigController(config: MConfigManager, webControllerManager: WebControl
       MConfig(
         param("mURL"),
         param("mAPIKey"),
+        param("mRule"),
         param("mViewDetail"),
         checkbox("mForceScan"),
         checkbox("mFailBuild"),

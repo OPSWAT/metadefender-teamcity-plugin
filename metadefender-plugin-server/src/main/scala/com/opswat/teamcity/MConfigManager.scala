@@ -11,6 +11,7 @@ import org.json4s.native.Serialization._
 case class MConfig(
     mURL: Option[String],
     mAPIKey: Option[String],
+    mRule: Option[String],
     mViewDetail: Option[String],
     mForceScan: Option[String],
     mFailBuild: Option[String],
@@ -34,6 +35,7 @@ class MConfigManager(paths: ServerPaths) {
 
   def mURL: Option[String] = config.flatMap(_.mURL)
   def mAPIKey: Option[String] = config.flatMap(_.mAPIKey)
+  def mRule: Option[String] = config.flatMap(_.mRule)
   def mViewDetail: Option[String] = config.flatMap(_.mViewDetail)
   def mForceScan: Option[String] = config.flatMap(_.mForceScan)
   def mFailBuild: Option[String] = config.flatMap(_.mFailBuild)
@@ -63,6 +65,7 @@ class MConfigManager(paths: ServerPaths) {
   def details: Map[String, Option[String]] = Map(
     "mURL" -> mURL,
     "mAPIKey" -> mAPIKey,
+    "mRule" -> mRule,
     "mViewDetail" -> mViewDetail,
     "mForceScan" -> mForceScan,
     "mFailBuild" -> mFailBuild,
